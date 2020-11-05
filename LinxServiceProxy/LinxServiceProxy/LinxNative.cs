@@ -10,7 +10,8 @@ namespace LinxServiceProxy
         private const string DTL_DLL = "linx_dtl_lite.dll";
         [DllImport(DTL_DLL, CharSet = CharSet.Ansi)]
         public static extern int DTL_INIT_RSI_EX(uint maxDefines, uint cookie, uint flags);
-
+        [DllImport(DTL_DLL, CharSet = CharSet.Ansi)]
+        public static extern int DTL_INIT_RSI(uint maxDefines, uint cookie);
         [DllImport(DTL_DLL, CharSet = CharSet.Ansi)]
         public static extern uint DTL_UNINIT(uint errorCode);
 
