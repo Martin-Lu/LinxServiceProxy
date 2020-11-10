@@ -5,7 +5,11 @@ VisualStudioVersion = 16.0.30621.155
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinxServiceProxy", "LinxServiceProxy\LinxServiceProxy.csproj", "{69EE9C7D-AC57-4C66-8EB9-AA268E3CD556}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinxTest", "LinxTest\LinxTest.csproj", "{456FA72C-FB98-428B-9F0F-75EB5A99614A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinxTest", "LinxTest\LinxTest.csproj", "{456FA72C-FB98-428B-9F0F-75EB5A99614A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChangeDetectInterface", "ChangeDetectInterface\ChangeDetectInterface.csproj", "{56C14046-FA6A-44B2-AA76-6B9407C08CAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorDemo", "MonitorDemo\MonitorDemo.csproj", "{E6FB31CF-AD99-414F-86A1-ECC6DCC25E39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{456FA72C-FB98-428B-9F0F-75EB5A99614A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{456FA72C-FB98-428B-9F0F-75EB5A99614A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{456FA72C-FB98-428B-9F0F-75EB5A99614A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56C14046-FA6A-44B2-AA76-6B9407C08CAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56C14046-FA6A-44B2-AA76-6B9407C08CAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56C14046-FA6A-44B2-AA76-6B9407C08CAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56C14046-FA6A-44B2-AA76-6B9407C08CAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6FB31CF-AD99-414F-86A1-ECC6DCC25E39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6FB31CF-AD99-414F-86A1-ECC6DCC25E39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6FB31CF-AD99-414F-86A1-ECC6DCC25E39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6FB31CF-AD99-414F-86A1-ECC6DCC25E39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

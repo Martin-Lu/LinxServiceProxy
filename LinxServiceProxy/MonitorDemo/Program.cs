@@ -1,18 +1,16 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Threading.Tasks;
+﻿using ChangeDetectInterface;
 using LinxServiceProxy;
-using ChangeDetectInterface;
+using System;
+using System.Threading.Tasks;
 
-namespace LinxTest
+namespace MonitorDemo
 {
-    [TestClass]
-    public class UnitTest1
+    class Program
     {
-        [TestMethod]
-        public async Task TestMethod1()
+        static async Task Main(string[] args)
         {
             IMonitorService s = new ControllerMonitorService();
-            for(int i =0; i<10; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 var path = $"controller1path10.10.10.11plc{i.ToString()}";
                 await s.StartMonitoDeviceAsync(path);
@@ -20,7 +18,7 @@ namespace LinxTest
 
             while (true)
             {
-                await Task.Delay(1000);
+                await Task.Delay(5000);
             }
         }
     }
