@@ -45,6 +45,7 @@ namespace LinxServiceProxy
                 {
                     _cts.Cancel();
                     await _monitorTask;
+                    Console.WriteLine($"{_path} mlu canceled");
                 }
                 catch(Exception ex)
                 {
@@ -87,6 +88,7 @@ namespace LinxServiceProxy
                 await Task.Delay(60000);
             }
             while (!cancellationToken.IsCancellationRequested);
+
         }
         #endregion
     }
