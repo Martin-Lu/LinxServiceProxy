@@ -111,6 +111,7 @@ namespace LinxServiceProxy
             else
             {
                 // timeout
+                CancelConnection();
                 return await Task.FromResult((int)ConnectionStatus.ClosedByTimeout);
             }
         }
@@ -129,7 +130,14 @@ namespace LinxServiceProxy
                                                         DtlConstant.DTL_CONNECT_TIMEOUT);
             return _connectTcs.Task;
         }
-
+        private void CancelConnection()
+        {
+            if(_connectTcs.Task.Status != TaskStatus.Running)
+            {
+                _connectTcs.TrySetCanceled();
+                _connectTcs = null;
+            }
+        }
         #endregion
 
 
