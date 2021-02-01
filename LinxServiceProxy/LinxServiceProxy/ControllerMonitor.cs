@@ -12,6 +12,7 @@ namespace LinxServiceProxy
         private readonly string _path;
         private Task _monitorTask;
         private CancellationTokenSource _cts = new CancellationTokenSource();
+        private LinxProxy _linxProxy = new LinxProxy();
         #endregion
         #region ctor
         public ControllerMonitor(string path)
@@ -62,19 +63,27 @@ namespace LinxServiceProxy
         }
         #endregion
         #region private methods
-        private async Task PollDevice(CancellationToken cancellationToken)
+        private async Task<int> PollDevice(CancellationToken cancellationToken)
         {
             do
             {
                 // open connection
                 DeviceStatus = ChangeDetectConstants.ControllerStatus.Connecting;
-                await Task.Delay(30000);
-                DeviceStatus = ChangeDetectConstants.ControllerStatus.SucceedConnected;
+                int result = await _linxProxy.ConnectAsync(_path);
+                if(result == (int)ConnectionStatus.Established)
+                {
+                    DeviceStatus = ChangeDetectConstants.ControllerStatus.SucceedConnected;
+                }
+                else
+                {
+                    DeviceStatus = ChangeDetectConstants.ControllerStatus.FailConnected;
+                    return await Task.FromResult((int)DeviceStatus);
+                }
+
 
                 // send message
-                DeviceStatus = ChangeDetectConstants.ControllerStatus.SucceedConnected;
                 await Task.Delay(5000);
-
+                result = await _linxProxy.SendMessage();
                 //receiving message
                 DeviceStatus = ChangeDetectConstants.ControllerStatus.ReceivingMessage;
                 await Task.Delay(10000);
@@ -88,8 +97,9 @@ namespace LinxServiceProxy
                 await Task.Delay(60000);
             }
             while (!cancellationToken.IsCancellationRequested);
-
+            return await Task.FromResult(0);
         }
+
         #endregion
     }
 }

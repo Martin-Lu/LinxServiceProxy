@@ -15,10 +15,12 @@ namespace LinxServiceProxy
         private static void Initialize()
         {
             // DTL_INIT
+            LinxNative.DTL_INIT_RSI(0, DtlConstant.DTL_INIT_RSI_COOKIE);
         }
         private static void UnInitialize()
         {
             //DTL_UNINT
+            LinxNative.DTL_UNINIT(0);
         }
         #endregion
 

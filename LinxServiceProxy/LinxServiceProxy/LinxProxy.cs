@@ -1,18 +1,137 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using ChangeDetectInterface;
 
 namespace LinxServiceProxy
 {
     public class LinxProxy
     {
-        //DTL_RETVAL(int) LIBMEM(__stdcall) DTL_INIT_RSI_EX(unsigned long max_defines,unsigned long cookie,unsigned long flags);
-        public int InitRsiEx(uint maxDefines, uint cookie, uint flags)
+        #region fields
+        private TaskCompletionSource<uint> _connectTcs;
+        private IntPtr _dtsaPtr = IntPtr.Zero;
+        private IntPtr _connPtr = IntPtr.Zero;
+        private uint _connID = 0;
+        private IntPtr _transportConn = IntPtr.Zero;
+        private IntPtr _statusCallbackDelegatePointer = IntPtr.Zero;
+        private LinxNative.StatusDelegate _statusDelegate;
+        #endregion
+        #region private function
+        private IntPtr CreateStatusCallback()
+        {
+            if (_statusCallbackDelegatePointer == IntPtr.Zero)
+            {
+                _statusDelegate = ConnectedStatusProcessing;
+                _statusCallbackDelegatePointer = Marshal.GetFunctionPointerForDelegate(_statusDelegate);
+            }
+            return _statusCallbackDelegatePointer;
+        }
+        private uint ConnectedStatusProcessing(uint connId, uint connParam, uint status, IntPtr info, uint infoSize)
+        {
+            ConnectionStatus connStatus;
+            switch (((DtlConstant.DTL_CONNECTION_STATE)status))
+            {
+                case DtlConstant.DTL_CONNECTION_STATE.DTL_CONN_ESTABLISHED:
+                    _connID = connId;
+                    connStatus = ConnectionStatus.Established;
+                    _connectTcs.TrySetResult((uint)connStatus);
+                    break;
+
+                case DtlConstant.DTL_CONNECTION_STATE.DTL_CONN_ERROR:
+                    connStatus = ConnectionStatus.ClosedWithError;
+                    break;
+
+                case DtlConstant.DTL_CONNECTION_STATE.DTL_CONN_FAILED:
+                    connStatus = ConnectionStatus.CreationFailed;
+                    break;
+
+                case DtlConstant.DTL_CONNECTION_STATE.DTL_CONN_TIMEOUT:
+                    connStatus = ConnectionStatus.ClosedByTimeout;
+                    FreeResource();
+                    break;
+
+                case DtlConstant.DTL_CONNECTION_STATE.DTL_CONN_CLOSED:
+                    connStatus = ConnectionStatus.ClosedManually;
+                    break;
+                default:
+                    connStatus = ConnectionStatus.ClosedUnknown;
+                    break;
+            }
+
+            return 0;
+        }
+
+        private void FreeResource()
+        {
+            _connPtr = IntPtr.Zero;
+            _connID = 0;
+            if (_transportConn != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(_transportConn);
+                _transportConn = IntPtr.Zero;
+            }
+            LinxNative.DTL_DestroyDtsa(_dtsaPtr);
+            _dtsaPtr = IntPtr.Zero;
+        }
+
+        internal Task<int> SendMessage()
         {
             throw new NotImplementedException();
         }
-        public void Uninit(uint errorCode)
+
+        private int CreateDtsa(string path)
         {
-            throw new NotImplementedException();
+            uint error = 0;
+            _dtsaPtr = LinxNative.DTL_CreateDtsaFromPathString(path, ref error, DtlConstant.DTL_FLAGS_ROUTE_TYPE_CIP);
+
+            return (int)error;
         }
+        
+        #endregion
+        #region public function
+        public void CloseConnection()
+        {
+            LinxNative.DTL_CIP_CONNECTION_CLOSE(_connID, DtlConstant.DTL_CLOSE_TIMEOUT);
+        }
+        internal async Task<int> ConnectAsync(string path)
+        {
+            int error = CreateDtsa(path);
+            if (error != DtlConstant.DTL_SUCCESS)
+            {
+                return await Task.FromResult(error);
+            }
+
+            var connTask = OpenConnectionAsync();
+            if (await Task.WhenAny(connTask, Task.Delay((int)DtlConstant.DTL_CONNECT_TIMEOUT)) == connTask)
+            {
+                // connected
+                return await Task.FromResult((int)ConnectionStatus.Established);
+
+            }
+            else
+            {
+                // timeout
+                return await Task.FromResult((int)ConnectionStatus.ClosedByTimeout);
+            }
+        }
+        private Task<uint> OpenConnectionAsync()
+        {
+            _transportConn = LinxNative.CreateTransportConnStruct();
+            var cb = CreateStatusCallback();
+            _connectTcs = new TaskCompletionSource<uint>();
+            int error = LinxNative.DTL_CIP_CONNECTION_OPEN(_dtsaPtr,
+                                                        DtlConstant.DTL_IOI,
+                                                        ref _connID,
+                                                        DtlConstant.ConnUserToken,
+                                                        _transportConn,
+                                                        IntPtr.Zero,
+                                                        cb,
+                                                        DtlConstant.DTL_CONNECT_TIMEOUT);
+            return _connectTcs.Task;
+        }
+
+        #endregion
+
 
         //DTL_RETVAL LIBMEM DTL_CIP_CONNECTION_OPEN(DTSA_TYPE LIBPTR *, unsigned char LIBPTR *,
         //                unsigned long LIBPTR *, unsigned long,
@@ -29,6 +148,7 @@ namespace LinxServiceProxy
                                     IntPtr status_proc,
                                     uint timeout)
         {
+
             throw new NotImplementedException();
         }
 
