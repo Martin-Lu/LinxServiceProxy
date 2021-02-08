@@ -9,6 +9,7 @@ namespace LinxServiceProxy
     {
         #region fields
         private TaskCompletionSource<uint> _connectTcs;
+        private MessageContext _message = null;
         private IntPtr _dtsaPtr = IntPtr.Zero;
         private IntPtr _connPtr = IntPtr.Zero;
         private uint _connID = 0;
@@ -74,9 +75,11 @@ namespace LinxServiceProxy
             _dtsaPtr = IntPtr.Zero;
         }
 
-        internal Task<int> SendMessage()
+        internal Task<int> SendMessageCCuid()
         {
-            throw new NotImplementedException();
+            _message = new MessageContext(25, 25);
+
+
         }
 
         private int CreateDtsa(string path)
@@ -93,7 +96,7 @@ namespace LinxServiceProxy
         {
             LinxNative.DTL_CIP_CONNECTION_CLOSE(_connID, DtlConstant.DTL_CLOSE_TIMEOUT);
         }
-        internal async Task<int> ConnectAsync(string path)
+        public async Task<int> ConnectAsync(string path)
         {
             int error = CreateDtsa(path);
             if (error != DtlConstant.DTL_SUCCESS)

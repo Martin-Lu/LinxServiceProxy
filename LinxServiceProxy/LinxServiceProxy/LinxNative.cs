@@ -8,7 +8,7 @@ namespace LinxServiceProxy
     public class LinxNative
     {
         #region nested struct
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct DtlCIPNetworkConnection
         {
             [MarshalAs(UnmanagedType.U1)]
@@ -24,7 +24,7 @@ namespace LinxServiceProxy
             [MarshalAs(UnmanagedType.U4)]
             public UInt32 api; /* specify the API. */
         }
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct DtlCIPTransportConnection
         {
             [MarshalAs(UnmanagedType.U4)]
@@ -87,7 +87,7 @@ namespace LinxServiceProxy
         [DllImport(DTL_DLL, CharSet = CharSet.Ansi)]
         public static extern uint DTL_UNINIT(uint errorCode);
 
-        [DllImport(DTL_DLL, CharSet = CharSet.Ansi)]
+        [DllImport("LinxDll.dll", CharSet = CharSet.Ansi)]
         public static extern int DTL_CIP_CONNECTION_OPEN(
                 IntPtr dtsaPointer, 
                 byte[] ioi,

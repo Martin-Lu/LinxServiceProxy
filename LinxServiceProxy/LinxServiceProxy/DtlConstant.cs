@@ -43,4 +43,10 @@ namespace LinxServiceProxy
             DTL_CONN_NAK_NO_MEM = 12    /* NAK - "Not Enough Memory" received */
         }
     }
+    static class CcuidConstant
+    {
+        public static readonly byte[] DTL_IOI_CCUID = { 0x02, 0x20, 0x8e, 0x24, 0x01 };
+        public static readonly int DTL_IOI_LEN = 5;
+        public static readonly byte[] DTL_SERVICE_DATA = { 0x01, 0x1b };
+    }
 }
