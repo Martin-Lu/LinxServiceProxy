@@ -46,9 +46,22 @@ namespace LinxServiceProxy
             [MarshalAs(UnmanagedType.Bool)]
             public bool isLicensedConnection;
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct CcuidResponse
+        {
+            [MarshalAs(UnmanagedType.U2)]
+            public ushort numAttributes; /* specifies the network connection type. */
+            [MarshalAs(UnmanagedType.U2)]
+            public ushort attributeCode; /* specifies the priority of network connection. */
+            [MarshalAs(UnmanagedType.U2)]
+            public ushort attributeOffset; /* specifies the priority of network connection. */
+            [MarshalAs(UnmanagedType.U8)]
+            public UInt64 ccuid; /* specifies whether data packets sent on this network connection. */
+        }
         #endregion
         #region helper function
         public delegate uint StatusDelegate(uint connId, uint connParam, uint status, IntPtr info, uint infoSize);
+        public delegate uint MessageDelegate(uint userData, uint iostatus);
         public static IntPtr CreateTransportConnStruct()
         {
             var cipTransportConnonn = new LinxNative.DtlCIPTransportConnection();

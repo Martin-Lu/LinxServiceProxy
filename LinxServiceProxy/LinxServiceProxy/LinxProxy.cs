@@ -8,7 +8,16 @@ namespace LinxServiceProxy
     public class LinxProxy
     {
         #region fields
+        public LinxNative.CcuidResponse CcuidResult 
+        {
+            get
+            {
+                return _message.CcuidResult;
+            }
+        }
+
         private TaskCompletionSource<uint> _connectTcs;
+        private TaskCompletionSource<int> _messageTcs;
         private MessageContext _message = null;
         private IntPtr _dtsaPtr = IntPtr.Zero;
         private IntPtr _connPtr = IntPtr.Zero;
@@ -16,6 +25,8 @@ namespace LinxServiceProxy
         private IntPtr _transportConn = IntPtr.Zero;
         private IntPtr _statusCallbackDelegatePointer = IntPtr.Zero;
         private LinxNative.StatusDelegate _statusDelegate;
+        private IntPtr _messageCallbackDelegatePointer = IntPtr.Zero;
+        private LinxNative.MessageDelegate _messageDelegate;
         #endregion
         #region private function
         private IntPtr CreateStatusCallback()
@@ -27,6 +38,24 @@ namespace LinxServiceProxy
             }
             return _statusCallbackDelegatePointer;
         }
+        private IntPtr CreateMessageCallback()
+        {
+            if (_messageCallbackDelegatePointer == IntPtr.Zero)
+            {
+                _messageDelegate = MessageProcessing;
+                _messageCallbackDelegatePointer = Marshal.GetFunctionPointerForDelegate(_messageDelegate);
+            }
+            return _messageCallbackDelegatePointer;
+        }
+        private uint MessageProcessing(uint userData, uint iostatus)
+        {
+            if (_messageTcs != null)
+                _messageTcs.TrySetResult((int)iostatus);
+
+            return 0;
+        }
+        
+
         private uint ConnectedStatusProcessing(uint connId, uint connParam, uint status, IntPtr info, uint infoSize)
         {
             ConnectionStatus connStatus;
@@ -75,11 +104,30 @@ namespace LinxServiceProxy
             _dtsaPtr = IntPtr.Zero;
         }
 
-        internal Task<int> SendMessageCCuid()
+        internal Task<int> GetCcuidAsync()
         {
-            _message = new MessageContext(25, 25);
+            _message = new MessageContext(26, 26);
+            var cb = CreateMessageCallback();
+            _messageTcs = new TaskCompletionSource<int>();
 
-
+            int error = LinxNative.DTL_CIP_MESSAGE_SEND_CB(
+                _dtsaPtr,
+                DtlConstant.CIP_READ_ATTRIBUTE_SERVICE,
+                CcuidConstant.DTL_IOI_CCUID,
+                CcuidConstant.DTL_SERVICE_DATA,
+                CcuidConstant.DTL_SERVICE_DATA_LEN,
+                _message.DataPtr,
+                _message.DataSizePtr,
+                _message.ExtDataPtr,
+                _message.ExtDataSizePtr,
+                DtlConstant.DTL_CONNECT_TIMEOUT,
+                cb,
+                0);
+            if(error != DtlConstant.DTL_SUCCESS)
+            {
+                _messageTcs.TrySetResult(error);
+            }
+            return _messageTcs.Task;
         }
 
         private int CreateDtsa(string path)
@@ -95,6 +143,24 @@ namespace LinxServiceProxy
         public void CloseConnection()
         {
             LinxNative.DTL_CIP_CONNECTION_CLOSE(_connID, DtlConstant.DTL_CLOSE_TIMEOUT);
+        }
+        public async Task<int> RequestCcuidAsync()
+        {
+            int result = 1;
+            var messageTask = GetCcuidAsync();
+            if (await Task.WhenAny(messageTask, Task.Delay((int)DtlConstant.DTL_CONNECT_TIMEOUT)) == messageTask)
+            {
+                // succeed get ccuid
+                result = 0;
+                _message.CcuidResult = (LinxNative.CcuidResponse)Marshal.PtrToStructure(_message.DataPtr, typeof(LinxNative.CcuidResponse));
+            }
+            else
+            {
+                // timeout
+                CancelCcuidRequest();
+            }
+            _message.UnInitialize();
+            return await Task.FromResult(result);
         }
         public async Task<int> ConnectAsync(string path)
         {
@@ -135,10 +201,18 @@ namespace LinxServiceProxy
         }
         private void CancelConnection()
         {
-            if(_connectTcs.Task.Status != TaskStatus.Running)
+            if(_connectTcs != null && _connectTcs.Task.Status == TaskStatus.Running)
             {
                 _connectTcs.TrySetCanceled();
                 _connectTcs = null;
+            }
+        }
+        private void CancelCcuidRequest()
+        {
+            if(_messageTcs != null && _messageTcs.Task.Status == TaskStatus.Running)
+            {
+                _messageTcs.TrySetCanceled();
+                _messageTcs = null;
             }
         }
         #endregion

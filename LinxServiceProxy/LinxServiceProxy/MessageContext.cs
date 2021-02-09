@@ -11,6 +11,7 @@ namespace LinxServiceProxy
         private IntPtr _extData = IntPtr.Zero;
         private IntPtr _dataSize = IntPtr.Zero;
         private IntPtr _extDataSize = IntPtr.Zero;
+        public LinxNative.CcuidResponse CcuidResult { get; set; }
         public IntPtr DataPtr
         {
             get { return _data; }

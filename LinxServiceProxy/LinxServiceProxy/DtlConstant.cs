@@ -27,6 +27,7 @@ namespace LinxServiceProxy
         public static readonly ushort ConnectionMaxPackageSize = 400;
         public static readonly uint ConnectionDefaultRPI = 2000*1000;
         public static readonly uint ConnUserToken = 0x123123;
+        public static readonly int CIP_READ_ATTRIBUTE_SERVICE = 0x03;
         public enum DTL_CONNECTION_STATE : uint
         {
             DTL_CONN_ESTABLISHED = 1,   /* connection successfully opened */
@@ -46,7 +47,8 @@ namespace LinxServiceProxy
     static class CcuidConstant
     {
         public static readonly byte[] DTL_IOI_CCUID = { 0x02, 0x20, 0x8e, 0x24, 0x01 };
-        public static readonly int DTL_IOI_LEN = 5;
-        public static readonly byte[] DTL_SERVICE_DATA = { 0x01, 0x1b };
+        public static readonly uint DTL_IOI_LEN = 5;
+        public static readonly byte[] DTL_SERVICE_DATA = { 0x01, 0, 0x1b, 0 };
+        public static readonly uint DTL_SERVICE_DATA_LEN = 4;
     }
 }

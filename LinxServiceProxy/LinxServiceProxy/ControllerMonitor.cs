@@ -82,8 +82,19 @@ namespace LinxServiceProxy
 
 
                 // send message
-                await Task.Delay(5000);
-                result = await _linxProxy.SendMessage();
+                DeviceStatus = ChangeDetectConstants.ControllerStatus.ReceivingMessage;
+                result = await _linxProxy.RequestCcuidAsync();
+                if(result == 0)
+                {
+                    // succeed
+                    DeviceStatus = ChangeDetectConstants.ControllerStatus.SucceedReceiveMessage;
+                    UInt64 ccuid = _linxProxy.CcuidResult.ccuid;
+                }
+                else
+                {
+                    DeviceStatus = ChangeDetectConstants.ControllerStatus.FailReceiveMessage;
+                }
+
                 //receiving message
                 DeviceStatus = ChangeDetectConstants.ControllerStatus.ReceivingMessage;
                 await Task.Delay(10000);
